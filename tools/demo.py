@@ -22,6 +22,8 @@ from model.nms_wrapper import nms
 
 from utils.timer import Timer
 import tensorflow as tf
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import os, cv2
@@ -30,15 +32,25 @@ import argparse
 from nets.vgg16 import vgg16
 from nets.resnet_v1 import resnetv1
 
-CLASSES = ('__background__',
-           'aeroplane', 'bicycle', 'bird', 'boat',
-           'bottle', 'bus', 'car', 'cat', 'chair',
-           'cow', 'diningtable', 'dog', 'horse',
-           'motorbike', 'person', 'pottedplant',
-           'sheep', 'sofa', 'train', 'tvmonitor')
+ROOT_DIR = os.path.abspath("./")
+DEMO_SAVE_PATH = os.path.join(ROOT_DIR, "./output/img/")
 
-NETS = {'vgg16': ('vgg16_faster_rcnn_iter_70000.ckpt',),'res101': ('res101_faster_rcnn_iter_110000.ckpt',)}
-DATASETS= {'pascal_voc': ('voc_2007_trainval',),'pascal_voc_0712': ('voc_2007_trainval+voc_2012_trainval',)}
+CLASSES = ('background',
+'person', 'bicycle', 'car', 'motorcycle', 'airplane',
+'bus','train', 'truck', 'boat', 'traffic light', 'fire hydrant',
+'stop sign', 'parking meter','bench', 'bird', 'cat', 'dog',
+'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe',
+'backpack','umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+'skis', 'snowboard', 'sports ball', 'kite','baseball bat', 'baseball glove',
+'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup',
+'fork', 'knife', 'spoon', 'bowl','banana', 'apple', 'sandwich', 'orange',
+'broccoli','carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+'potted plant', 'bed', 'dining table','toilet', 'tv', 'laptop', 'mouse', 'remote',
+'keyboard', 'cell phone', 'microwave', 'oven','toaster', 'sink', 'refrigerator',
+'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush')
+
+NETS = {'vgg16': ('vgg16_faster_rcnn_iter_400000.ckpt',),'res101': ('res101_faster_rcnn_iter_110000.ckpt',)}
+DATASETS= {'pascal_voc': ('voc_2007_trainval',),'pascal_voc_0712': ('voc_2007_trainval+voc_2012_trainval',),'coco_2017':('coco_2017_train',)}
 
 def vis_detections(im, class_name, dets, thresh=0.5):
     """Draw detected bounding boxes."""
@@ -70,7 +82,8 @@ def vis_detections(im, class_name, dets, thresh=0.5):
                   fontsize=14)
     plt.axis('off')
     plt.tight_layout()
-    plt.draw()
+    #plt.draw()
+    plt.savefig(os.path.join(DEMO_SAVE_PATH,img_name))
 
 def demo(sess, net, image_name):
     """Detect object classes in an image using pre-computed object proposals."""
@@ -104,7 +117,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Tensorflow Faster R-CNN demo')
     parser.add_argument('--net', dest='demo_net', help='Network to use [vgg16 res101]',
                         choices=NETS.keys(), default='res101')
-    parser.add_argument('--dataset', dest='dataset', help='Trained dataset [pascal_voc pascal_voc_0712]',
+    parser.add_argument('--dataset', dest='dataset', help='Trained dataset [pascal_voc pascal_voc_0712 coco_2017]',
                         choices=DATASETS.keys(), default='pascal_voc_0712')
     args = parser.parse_args()
 
@@ -138,18 +151,22 @@ if __name__ == '__main__':
         net = resnetv1(num_layers=101)
     else:
         raise NotImplementedError
-    net.create_architecture("TEST", 21,
-                          tag='default', anchor_scales=[8, 16, 32])
+    net.create_architecture("TEST", 81,
+                          tag='default', anchor_scales=[4, 8, 16, 32])
     saver = tf.train.Saver()
     saver.restore(sess, tfmodel)
 
     print('Loaded network {:s}'.format(tfmodel))
 
+    #im_names = ['000000000139.jpg', '000000000139.jpg', '000000001000.jpg','000000000885.jpg', '000000000872.jpg']
     im_names = ['000456.jpg', '000542.jpg', '001150.jpg',
                 '001763.jpg', '004545.jpg']
+    
     for im_name in im_names:
         print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
         print('Demo for data/demo/{}'.format(im_name))
+        global img_name 
+        img_name = im_name
         demo(sess, net, im_name)
 
-    plt.show()
+    #plt.show()

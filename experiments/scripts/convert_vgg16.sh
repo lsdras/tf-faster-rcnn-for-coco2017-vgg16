@@ -30,9 +30,9 @@ case ${DATASET} in
     RATIOS="[0.5,1,2]"
     ;;
   coco)
-    TRAIN_IMDB="coco_2014_train+coco_2014_valminusminival"
-    TEST_IMDB="coco_2014_minival"
-    ITERS=490000
+    TRAIN_IMDB="coco_2017_train"
+    TEST_IMDB="coco_2017_val"
+    ITERS=20000 #490000 at first
     ANCHORS="[4,8,16,32]"
     RATIOS="[0.5,1,2]"
     ;;
